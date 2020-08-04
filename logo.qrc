@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/NOVAtestSMPU/CONFIG/img">
+        <file>Icons/novasom-logo3s.png</file>
+    </qresource>
+</RCC>

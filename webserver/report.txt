@@ -1,0 +1,14 @@
+Starting Tests
+System Information:
+ hardware:	aarch64
+Board : N
+OS:	GNU/Linux
+SDCARD OK
+CONSOLE OK
+fb-test 1.1.0 (rosetta)
+fb res 1920x1080 virtual 1920x1080, line_len 7680, bpp 32
+Checking CPU...
+CPU OK, 4 core(s).
+Ethernet OK
+RAM OK
+RTC OK
