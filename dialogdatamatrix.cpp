@@ -34,10 +34,10 @@ void DialogDataMatrix::on_pushButton_clicked()
     qDebug() << m->getParameter();
 
     if (!fp.open(QIODevice::ReadWrite | QIODevice::Append)){
-            std::cout << fp.errorString().toStdString() << std::endl;
-            std::cout << "ERRORE APERTURA!" << std::endl;
+            //std::cout << fp.errorString().toStdString() << std::endl;
+            //std::cout << "ERRORE APERTURA!" << std::endl;
     }else{
-            std::cout << "APERTURA Ciao.txt!" << std::endl;
+            //std::cout << "APERTURA Ciao.txt!" << std::endl;
     }
 
 

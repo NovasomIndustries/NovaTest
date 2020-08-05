@@ -118,7 +118,7 @@ uint SuserOperations::user_operations()
         encrFile.remove();
         m->write_file_content(decrContent, decrCredDir, false);
         m->write_file_content(decrContent, encrCredDir, true);
-        cout << "Decrypted file content: " << endl <<decrContent.toStdString() << endl << endl;
+        //cout << "Decrypted file content: " << endl <<decrContent.toStdString() << endl << endl;
     }
     if (!ui->keep_decr_checkBox->isChecked() && decrFile.exists())
         decrFile.remove();
@@ -190,14 +190,14 @@ uint SuserOperations::mac_operations()
         }
         else if (ui->mac_del_radioButton->isChecked())
         {
-            cout <<"yinemi"<<endl;
+            //cout <<"yinemi"<<endl;
             if (settings.contains(host))
             {
                 QString entry;
                 entry = (host.append("=").append(macnum));
                 decrContent.remove(entry);
                 decrContent.replace("\n\n", "\n");
-                cout <<"buraya girmiyor:("<<endl;
+                //cout <<"buraya girmiyor:("<<endl;
             }
             else
                 QMessageBox::information(this, "Invalid entry", "This entry does not exist.");
@@ -210,7 +210,7 @@ uint SuserOperations::mac_operations()
     encrFile.remove();
     m->write_file_content(decrContent, decrCredDir, false);
     m->write_file_content(decrContent, encrCredDir, true);
-    cout << "Decrypted file content: " << endl <<decrContent.toStdString() << endl << endl;
+    //cout << "Decrypted file content: " << endl <<decrContent.toStdString() << endl << endl;
 
     if (!ui->keep_decr_checkBox->isChecked() && decrFile.exists())
         decrFile.remove();
@@ -237,7 +237,7 @@ void SuserOperations::on_apply_pushButton_clicked()
         usr_ops_return_flag = mac_operations();
         break;
     default:
-        cout << "How is this possible!!!" << endl;
+        //cout << "How is this possible!!!" << endl;
         break;
     }
 

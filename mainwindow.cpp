@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define QT_NO_DEBUG_OUTPUT
+
 using namespace std;
 
 bool superuser = false;
@@ -75,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowTitle("NOVAtest Ver. 1.5.0");
     //qDebug() << "CIAOOOOOOOOOOOOO";
     //QDebug() << "forseforse";
-    std::cout << "cisiamo?" << std::endl;
+    //std::cout << "cisiamo?" << std::endl;
     //std::cout << "gnooooooooooo";
 }
 
@@ -218,40 +220,40 @@ void MainWindow::logInSuccesfully(){
 
     for (int i=0;i<entries.count();i++){
         QNetworkInterface iface= entries.at(i);
-        qDebug() << "CIAO PRIMO FOR------";
-        qDebug() << iface.name();
-        qDebug() << iface.hardwareAddress();
-        qDebug() << iface.hardwareAddress().compare("00:4E:00:01:00:05");
+        //qDebug() << "CIAO PRIMO FOR------";
+        //qDebug() << iface.name();
+        //qDebug() << iface.hardwareAddress();
+        //qDebug() << iface.hardwareAddress().compare("00:4E:00:01:00:05");
         if(iface.flags().testFlag(QNetworkInterface::IsUp) && compareMacs(iface)){
-            qDebug() << "TROVATO!";
+            //qDebug() << "TROVATO!";
             for( int j =0 ; j< iface.addressEntries().count();j++){
                 //std::cout << iface.name().toUtf8().toStdString() << std::endl;
-                qDebug() << "secondociclo------";
-                qDebug() << j;
+                //qDebug() << "secondociclo------";
+                //qDebug() << j;
                 if(iface.addressEntries().at(j).ip().protocol()==QAbstractSocket::IPv4Protocol){
-                    std::cout << iface.name().toUtf8().toStdString() << std::endl;
+                    //std::cout << iface.name().toUtf8().toStdString() << std::endl;
                     //if(strstr(iface.name().toUtf8(), get_net_name().toUtf8())){
                     if(compareMacs(iface)){
                         ip = iface.addressEntries().at(j).ip().toString();
-                        qDebug() << iface.addressEntries().at(j).ip().toString();
-                        qDebug() << iface.name();
+                        //qDebug() << iface.addressEntries().at(j).ip().toString();
+                        //qDebug() << iface.name();
                         //ip = iface.addressEntries().at(j).ip().toString();
-                        qDebug() << "vaccagialla";
-                        qDebug() << ip;
-                        qDebug() << iface.addressEntries().at(j).ip().protocol();
+                        //qDebug() << "vaccagialla";
+                        //qDebug() << ip;
+                        //qDebug() << iface.addressEntries().at(j).ip().protocol();
+                    }else{//cout << get_net_name().toStdString() << endl;
+
                     }
-                    else
-                        cout << get_net_name().toStdString() << endl;
                 }
-                qDebug() << "------secondocicloend";
+                //qDebug() << "------secondocicloend";
             }
         }
-        qDebug() << "------PRIMOCICLOEND";
+        //qDebug() << "------PRIMOCICLOEND";
     }
 
            if(ip==NULL){
-                    std::cout << "NOINTERNETCONNECTION";
-                    qDebug() << "NOINTERNETCONNECTION";
+                    //std::cout << "NOINTERNETCONNECTION";
+                    //qDebug() << "NOINTERNETCONNECTION";
                     QMessageBox msgBoxwarning;
                         msgBoxwarning.setText("No internet connection found");
                         msgBoxwarning.setWindowTitle("Warning");
@@ -279,10 +281,10 @@ void MainWindow::popolate_line_combobox(){
     QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        qDebug() << "[ERRORE]Non sono riuscito ad aprire linecombobox!";
+        //qDebug() << "[ERRORE]Non sono riuscito ad aprire linecombobox!";
 
     }else{
-        qDebug() << "File aperto correttamente";
+        //qDebug() << "File aperto correttamente";
     }
     ui->line_comboBox->clear();
     QString line;
@@ -377,24 +379,24 @@ void MainWindow::on_logout_pushButton_clicked()
 void MainWindow::on_disconnect_novasom_pushButton_clicked()
 {
     int j=0;
-    cout << "Inizio Procedura disconnessione!!" << endl;
+    //cout << "Inizio Procedura disconnessione!!" << endl;
     for(j=0;j<connectedNOVAsom;j++) {
-        cout << "ciclo: "+ j << endl;
+        //cout << "ciclo: "+ j << endl;
        if(serial[j].isOpen()==true){
-           cout << j + " è aperta!!" << endl;
+           //cout << j + " è aperta!!" << endl;
            serial[j].close();
-           cout << j + " la sto chiudendo..." << endl;
+           //cout << j + " la sto chiudendo..." << endl;
            if (serial[j].isOpen()==false){
-               cout << j + "è stata chiusa!!" << endl;
+               //cout << j + "è stata chiusa!!" << endl;
            }else{
-               cout <<j +  " STILL OPEN" << endl;
+               //cout <<j +  " STILL OPEN" << endl;
            }
        }else{
-           cout << j + " Era già chiusa" << endl;
+           //cout << j + " Era già chiusa" << endl;
        }
     }
     if (j==connectedNOVAsom){
-        cout << "UltimoCiclo" << endl;
+        //cout << "UltimoCiclo" << endl;
         connectedNOVAsom=0;
         ui->line_comboBox->setEnabled(true);
         ui->model_comboBox->setEnabled(true);
@@ -403,15 +405,15 @@ void MainWindow::on_disconnect_novasom_pushButton_clicked()
         ui->runtest_pushButton->setEnabled(false);
         ui->logout_pushButton->setEnabled(true);
     }else{
-        cout << "NON DOVREI ESSERE QUI!!" << endl;
+        //cout << "NON DOVREI ESSERE QUI!!" << endl;
     }
-    cout << "FuoriDaiCicli" << endl;
+    //cout << "FuoriDaiCicli" << endl;
     savelastsetting();
-    cout << "Salvato modifiche!!" << endl;
+    //cout << "Salvato modifiche!!" << endl;
     if(superuser){
         enablepanel();
     }
-    cout << "Sto uscendo!!" << endl;
+    //cout << "Sto uscendo!!" << endl;
     return;
 }
 
@@ -463,10 +465,10 @@ void MainWindow::on_model_comboBox_activated(const QString &arg1)
     filename=(ConfigDir+"/"+arg1+".ini");
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        qDebug() << "[ERRORE]Non sono riuscito ad aprire "+ filename;
+        //qDebug() << "[ERRORE]Non sono riuscito ad aprire "+ filename;
         update_status_bar("[ERROR] No configuration file...Please contact us");
     }else{
-        qDebug() << "File aperto correttamente";
+        //qDebug() << "File aperto correttamente";
         QString strKeyFunc("CONFIG/");
         QSettings * settings = 0;
         settings = new QSettings( filename, QSettings::IniFormat );
@@ -478,12 +480,12 @@ void MainWindow::on_model_comboBox_activated(const QString &arg1)
             QString checkBoxName = checkBoxes.at(i)->objectName();
             if (getvalue(strKeyFunc, settings , checkBoxName) == "true")
             {
-                qDebug() << "true";
+                //qDebug() << "true";
                 checkBoxes.at(i)->setChecked(true);
             }
             else
             {
-                qDebug() << "false";
+                //qDebug() << "false";
                 checkBoxes.at(i)->setChecked(false);
             }
 
@@ -671,14 +673,14 @@ int MainWindow:: loadpreviousconfiguration(){
      QString filename=userConfigDir+user+".ini";
      if (filename.isEmpty())
      {
-         qDebug() << "fileName is empty";
+         //qDebug() << "fileName is empty";
          return -1;
      }
      QFile file(filename);
      if(!file.exists()) return -1;
-     qDebug ()<< filename << "sto cercando di aprire";
+     //qDebug ()<< filename << "sto cercando di aprire";
      if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
-        qDebug() << "Non sono riuscito ad aprire il file!";
+        //qDebug() << "Non sono riuscito ad aprire il file!";
         return -1;
          }
      QString line;
@@ -726,9 +728,9 @@ void MainWindow::on_connect_novasom_pushButton_clicked()
     disablepanel();
     int i =0;
     foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts()) {
-            std::cout << "Name : " << info.portName().toStdString() << std::endl;
-            std::cout << "Description : " << info.description().toStdString() << std::endl ;
-            std::cout << "Manufacturer: " << info.manufacturer().toStdString() << std::endl;
+            //std::cout << "Name : " << info.portName().toStdString() << std::endl;
+            //std::cout << "Description : " << info.description().toStdString() << std::endl ;
+            //std::cout << "Manufacturer: " << info.manufacturer().toStdString() << std::endl;
 
             if(initPort(i,info)!=-1){
                   i++;
@@ -786,35 +788,35 @@ void MainWindow::on_connect_novasom_pushButton_clicked()
 
 void MainWindow::on_runtest_pushButton_clicked()
 {
-    std::cout << "cisiamo?" << std::endl;
+    //std::cout << "cisiamo?" << std::endl;
     ui->runtest_pushButton->setEnabled(false);
     ui->disconnect_novasom_pushButton->setEnabled(false);
     ui->logout_pushButton->setEnabled(false);
 
     QFile fl(lan + "WebServerResult.txt");
     if(fl.exists()){
-        qDebug() << "esisteeeeeeeeeee222222";
+        //qDebug() << "esisteeeeeeeeeee222222";
         while(fl.exists()){
-             qDebug() << "2222222esisteeeeeeeeeee222222";
+             //qDebug() << "2222222esisteeeeeeeeeee222222";
             fl.remove();
-            std::cout << fl.errorString().toStdString() << std::endl;
+            //std::cout << fl.errorString().toStdString() << std::endl;
         }
-        qDebug() << "remoooveeeeee2222222";
-        std::cout << "rimossa2222222" << std::endl;
+        //qDebug() << "remoooveeeeee2222222";
+        //std::cout << "rimossa2222222" << std::endl;
     }
 
     QEventLoop loop;
 
     for (int i=0;i<connectedNOVAsom;i++){
-        std::cout << i << std::endl;
+        //std::cout << i << std::endl;
         if (serial[i].isOpen()){
             connect(ui->NextPort_pushButton,&QPushButton::pressed,&loop,&QEventLoop::quit);
             serialport=&serial[i];
-            std::cout << "cisiamo!" << std::endl;
+            //std::cout << "cisiamo!" << std::endl;
 
             testingNovasom(serialport);
 
-            std::cout << "cisiamostati!" << std::endl;
+            //std::cout << "cisiamostati!" << std::endl;
             ui->GenerateParameters_checkBox->setEnabled(true);
             ui->GenerateParameters_PushButton->setEnabled(true);
             ui->NextPort_pushButton->setEnabled(false);
@@ -858,9 +860,9 @@ int MainWindow::testingNovasom(QSerialPort *serialp){
 
     if(file1.exists()){
         if(file1.remove()){
-            std::cout << "EliminatoTestingnovasom" << std::endl;
+            //std::cout << "EliminatoTestingnovasom" << std::endl;
         }else{
-                std::cout << "NONeliminatoTestingNovasom" << std::endl;
+                //std::cout << "NONeliminatoTestingNovasom" << std::endl;
             QMessageBox msgBox;
                 msgBox.setText("[Error!]");
                 msgBox.setWindowTitle("FileServerError-non sono riuscito ad eliminare il file risultato");
@@ -869,7 +871,7 @@ int MainWindow::testingNovasom(QSerialPort *serialp){
         }
     }else{
 
-        std::cout << "Il file Non esiste!" << std::endl;
+        //std::cout << "Il file Non esiste!" << std::endl;
 
     }
 
@@ -944,12 +946,12 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
 
      QFile fl(lan + "report.txt");
      if(fl.exists()){
-         qDebug() << "esisteeeeeeeeeee";
+         //qDebug() << "esisteeeeeeeeeee";
          while(fl.exists()){
-             std::cout << "cicloooooo" << std::endl;
+             //std::cout << "cicloooooo" << std::endl;
              fl.remove();
          }
-         qDebug() << "remoooveeeeee";
+         //qDebug() << "remoooveeeeee";
      }
 
     if(k==0){
@@ -1121,12 +1123,12 @@ int MainWindow:: checkResult(){
     QFile file1(lan+"WebServerResult.txt");
     if(file1.exists()){
         //il risultato del test esiste!!
-        std::cout << "Il file esiste" << std::endl;
+        //std::cout << "Il file esiste" << std::endl;
 
         if (!file1.open(QIODevice::ReadOnly|QIODevice::Text)){
             QMessageBox::information(this, tr("Unable to open file"),file1.errorString());
             //qDebug() << "3";
-            std::cout << "non riesco ad aprirlo" << std::endl;
+            //std::cout << "non riesco ad aprirlo" << std::endl;
             return -1;
            }
        linebytearray=file1.readAll();
@@ -1139,7 +1141,7 @@ int MainWindow:: checkResult(){
 
 
            QMessageBox msgBox;
-           std::cout << "Test base passato!" << std::endl;
+           //std::cout << "Test base passato!" << std::endl;
 
                msgBox.setText("Check video...");
                msgBox.setInformativeText("Can you see video?");
@@ -1150,7 +1152,7 @@ int MainWindow:: checkResult(){
                case QMessageBox::Yes:
                    ui->testpass_checkBox->setChecked(true);
                    ui->testFail_checkBox->setChecked(false);
-                   std::cout << "TestVideoOk" << std::endl;
+                   //std::cout << "TestVideoOk" << std::endl;
                    return 0;
                    break;
 
@@ -1158,18 +1160,18 @@ int MainWindow:: checkResult(){
                    ui->testpass_checkBox->setChecked(false);
                    ui->testFail_checkBox->setChecked(true);
                    err.exec();
-                   std::cout << "TestVideoFalse!" << std::endl;
+                   //std::cout << "TestVideoFalse!" << std::endl;
                    return 1;
                    break;
                default:
                    //should never be reached
-                   std::cout << "Perchè sono qui?" << std::endl;
+                   //std::cout << "Perchè sono qui?" << std::endl;
                    break;
                }
            return 0;
        }else if (linebytearray.toStdString()=="KO") {
            //Test Fail!!
-           std::cout << "TestBaseFalse!" << std::endl;
+           //std::cout << "TestBaseFalse!" << std::endl;
            QMessageBox msgBox1;
                msgBox1.setText("Test Fail.");
                msgBox1.setWindowTitle("Check result...");
@@ -1180,8 +1182,8 @@ int MainWindow:: checkResult(){
            return 1;
        }else{
            //test ????
-           std::cout << "Risultatodeltest sconosciuto" << std::endl;
-           qDebug() << "TEST booooooooooooooooo!";
+           //std::cout << "Risultatodeltest sconosciuto" << std::endl;
+           //qDebug() << "TEST booooooooooooooooo!";
 
            QMessageBox msgBox2;
                msgBox2.setText("Problema sconosciuto...\nFile risultato non corretto.Ripetere il test...");
@@ -1193,13 +1195,13 @@ int MainWindow:: checkResult(){
        }
 
     }else{
-        std::cout << "Il risultato non esiste!" << std::endl;
+        //std::cout << "Il risultato non esiste!" << std::endl;
         //il risultato del test non esiste!!!Problemi sul webserver???
         QMessageBox msgBox3;
             msgBox3.setText("WebServer problem...No network?? ");
             msgBox3.setWindowTitle("Check result...");
             msgBox3.exec();
-        qDebug()<<"Risultato non trovato...Problema di rete??";
+        //qDebug()<<"Risultato non trovato...Problema di rete??";
         return -2;
     }
 }
@@ -1379,10 +1381,10 @@ void MainWindow::generateParameters(){
     macseriale++;
     //itoa(macseriale,stdstr,10);
     my_itoa(macseriale,stdstr);
-    qDebug()<<macseriale;
-    std::cout << "macseriale: "<< macseriale << std::endl;
+    //qDebug()<<macseriale;
+    //std::cout << "macseriale: "<< macseriale << std::endl;
     qDebug()<<stdstr;
-    std::cout << "stdstr: "<< stdstr << std::endl;
+    //std::cout << "stdstr: "<< stdstr << std::endl;
     if(!file4.isOpen()){
         file4.open(QIODevice::ReadWrite | QIODevice::Text);
     }
@@ -1486,13 +1488,13 @@ void MainWindow::on_Write_EEprom_pushButton_clicked()
             serialport->write("get_exec e2info\n");
 
             pn=ui->PN_lineEdit->text();
-            qDebug() << pn.toUtf8();
+            //qDebug() << pn.toUtf8();
             seriale=ui->seriale_lineEdit->text();
-            qDebug() << seriale.toUtf8();
+            //qDebug() << seriale.toUtf8();
             lotto=ui->Lotto_lineEdit->text();
-            qDebug() << lotto.toUtf8();
+            //qDebug() << lotto.toUtf8();
             mac=ui->MAC_lineEdit->text();
-            qDebug() << mac.toUtf8();
+            //qDebug() << mac.toUtf8();
             serialport->write("chmod 777 e2info\n");
             serialport->write("./e2info -P "+ pn.toUtf8()+"\n");
             serialport->write("./e2info -M "+ mac.toUtf8()+"\n");
@@ -1553,10 +1555,10 @@ int MainWindow::generateReport(QString filename){
 
 
     QFile report(directory+filename+".txt");
-    qDebug()<< filename;
+    //qDebug()<< filename;
 
     if(!report.open(QIODevice::ReadWrite|QIODevice::Text)){
-       qDebug() << "Non sono riuscito a creare il file1!";
+       //qDebug() << "Non sono riuscito a creare il file1!";
        return -1;
         }
 
@@ -1565,13 +1567,13 @@ int MainWindow::generateReport(QString filename){
 
 
     if(!original.open(QIODevice::ReadOnly|QIODevice::Text)){
-       qDebug() << "Non sono riuscito ad aprire il file2!";
+       //qDebug() << "Non sono riuscito ad aprire il file2!";
        return -1;
         }
     QByteArray rep;
 
     rep=original.readAll();
-    qDebug() << rep;
+    //qDebug() << rep;
 
     report.write("#");
     report.write(filename.toUtf8());
@@ -2137,14 +2139,14 @@ QString MainWindow::get_OC(QString pn){
     QSettings * settings = 0;
     QString filename;
     filename="/OC.ini";
-     cout << "Cerchiamo file:" << endl;
-    cout << ConfigDir.toStdString()+filename.toStdString() << endl;
-    cout << "Cerchiamo key:" << endl;
-   cout << pn.toStdString() << endl;
+     //cout << "Cerchiamo file:" << endl;
+    //cout << ConfigDir.toStdString()+filename.toStdString() << endl;
+    //cout << "Cerchiamo key:" << endl;
+   //cout << pn.toStdString() << endl;
     settings = new QSettings( ConfigDir+filename, QSettings::IniFormat );
     OC= getvalue(strKeyFunc, settings, pn);
-    cout << "trovato:" << endl;
-   cout << OC.toStdString() << endl;
+    //cout << "trovato:" << endl;
+   //cout << OC.toStdString() << endl;
     //ui->OC_lineEdit->setText(OC);
    return OC;
 }
@@ -2243,8 +2245,8 @@ int MainWindow::uploadReport(QString filename, QString path){
     command.append(path);
     command.append(filename);
     command.append(" novasomLog@93.41.190.216:/home/novasomLog/.");
-    cout << "command UPLOADING" << endl;
-    cout << command.toStdString() << endl;
+    //cout << "command UPLOADING" << endl;
+    //cout << command.toStdString() << endl;
     return system(command);
 
 }

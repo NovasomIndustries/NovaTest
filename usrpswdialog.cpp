@@ -41,7 +41,7 @@ void UsrPswDialog::on_logIn_pushButton_clicked()
     }
 
     uint authenticated = authentication(user, password);
-    cout << "Authorization: " << authenticated << endl;
+    //cout << "Authorization: " << authenticated << endl;
 
     //if((user=="BRC01" && password=="Operatore01") || user=="michelepuca" || (user=="XD01" && password=="Operatore01")){
     //if(open file --> read file -->if(user==keystring[0] && password==keystring[1])-->encrypt){
@@ -155,8 +155,8 @@ uint UsrPswDialog::authentication(QString uname, QString pswd)
         settings.beginGroup("USERS");
         if (settings.contains(uname) && settings.value(uname).toString() == pswd)
         {
-            cout <<"User: "<< uname.toStdString() <<endl;
-            cout <<"Password: "<< settings.value(uname).toString().toStdString()<<endl;
+            //cout <<"User: "<< uname.toStdString() <<endl;
+            //cout <<"Password: "<< settings.value(uname).toString().toStdString()<<endl;
             m->setAuthentication(1);
         }
         settings.endGroup();
@@ -164,8 +164,8 @@ uint UsrPswDialog::authentication(QString uname, QString pswd)
         settings.beginGroup("SUSERS");
         if (settings.contains(uname) && settings.value(uname).toString() == pswd)
         {
-            cout <<"SUser: "<< uname.toStdString() <<endl;
-            cout <<"Password: "<< settings.value(uname).toString().toStdString()<<endl;
+            //cout <<"SUser: "<< uname.toStdString() <<endl;
+            //cout <<"Password: "<< settings.value(uname).toString().toStdString()<<endl;
             m->setAuthentication(2);
         }
         settings.endGroup();
