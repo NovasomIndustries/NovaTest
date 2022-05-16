@@ -143,8 +143,6 @@ private slots:
 
      void pswNlogSlt(QString logstr);
 
-     QString getPass();
-
 signals:
      void pswNlogSig(QString);
 

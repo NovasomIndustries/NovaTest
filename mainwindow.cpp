@@ -75,10 +75,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     update_status_bar("Please LogIn...");
     setWindowTitle("NOVAtest Ver. 1.5.0");
-    //qDebug() << "CIAOOOOOOOOOOOOO";
-    //QDebug() << "forseforse";
-    //std::cout << "cisiamo?" << std::endl;
-    //std::cout << "gnooooooooooo";
 }
 
 MainWindow::~MainWindow()
@@ -906,10 +902,11 @@ int MainWindow::testingNovasom(QSerialPort *serialp){
     return 0;
 }
 
-int MainWindow::finisciprocedurasingoloNOVASOM(QSerialPort *serialp){
+int MainWindow::finisciprocedurasingoloNOVASOM(QSerialPort *serialp)
+{
+    (void)serialp;
 
     return 0;
-
 }
 
 void MainWindow::on_GenerateParameters_PushButton_clicked()
@@ -1765,8 +1762,9 @@ int MainWindow::generateLabel(QString filename){
 
 int MainWindow::printLabel(QString filename)
 {
+    (void) filename;
     //system("notepad \/p \/NOVATEST_SP\/TESTED\/last_label.txt");
-    system("lpr \/NOVAtestSMPU\/TESTED\/last_label.txt");
+    system("lpr /NOVAtestSMPU/TESTED/last_label.txt");
     return 0;
 }
 
@@ -2157,14 +2155,6 @@ void MainWindow::on_suser_operations_pushButton_clicked()
 {
     SuserOperations *suser_operations = new(SuserOperations);
     suser_operations->show();
-}
-
-
-QString MainWindow::getPass(){
-
-
-    //manager->deleteLater();
-
 }
 
 QString MainWindow::getPswNlog() const
