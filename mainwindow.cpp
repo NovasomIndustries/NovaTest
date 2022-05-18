@@ -19,40 +19,28 @@ int connectedNOVAsom=0;
 QSerialPort *serialport;
 QSerialPort serial[MAXPORT];
 
-/*
-QString userConfigDir = "C:/NOVATEST_SP/CONFIG/user/";
-QString ConfigDir = "C:/NOVATEST_SP/CONFIG/CONF";
-QString lan = "C:/NOVATEST_SP/CONFIG/xampp/htdocs/";
-QString LogDir = "C:/NOVATEST_SP/CONFIG/log/";
-QString MACdir = "C:/NOVATEST_SP/CONFIG/log/MAC/";
-QString Fail ="C:/NOVATEST_SP/CONFIG/log/FAIL/";
-QString directory = "C:/NOVATEST_SP/TESTED/";
-QString labeltemplate= "C:/NOVATEST_SP/CONFIG/CONF/zebra_template.txt";
-*/
-
-QString userConfigDir = "/NOVAtestSMPU/CONFIG/user/";
-QString ConfigDir = "/NOVAtestSMPU/CONFIG/CONF";
-//QString lan = "/NOVAtestSMPU/CONFIG/xampp/htdocs/";
-//var/www/html
-QString lan = "/var/www/html/";
-QString LogDir = "/NOVAtestSMPU/CONFIG/log/";
-QString MACdir = "/NOVAtestSMPU/CONFIG/log/MAC/";
-QString Fail ="/NOVAtestSMPU/CONFIG/log/FAIL/";
-QString directory = "/NOVAtestSMPU/TESTED/";
-QString labeltemplate= "/NOVAtestSMPU/CONFIG/CONF/zebra_template.txt";
+QString sUserConfigDir = "/NOVAtestSMPU/CONFIG/user/";
+QString sConfigDir = "/NOVAtestSMPU/CONFIG/CONF";
+QString sWebServerDir = "/var/www/html/";
+QString sLogDir = "/NOVAtestSMPU/CONFIG/log/";
+QString sMACdir = "/NOVAtestSMPU/CONFIG/log/MAC/";
+QString sLogFailDir = "/NOVAtestSMPU/CONFIG/log/FAIL/";
+QString sTestedDir = "/NOVAtestSMPU/TESTED/";
+QString sLabelTemplate= "/NOVAtestSMPU/CONFIG/CONF/zebra_template.txt";
 
 char *my_itoa(int num, char *str)
 {
-        if(str == NULL)
-        {
-            return NULL;
-        }
-        sprintf(str, "%d", num);
-        return str;
+    if(str == NULL)
+    {
+        return NULL;
+    }
+    sprintf(str, "%d", num);
+    return str;
 }
 
-void clearstdstr( char *stringa){
-    for(uint i=0;i<strlen(stringa);i++){
+void clearstdstr( char *stringa)
+{
+    for(uint i=0;i<strlen(stringa);i++) {
         stringa[i]='\0';
     }
     return;
@@ -82,7 +70,8 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-QString MainWindow::getParameter(){
+QString MainWindow::getParameter()
+{
     QString param;
 
     param.append(ui->PN_lineEdit->text());
@@ -92,13 +81,11 @@ QString MainWindow::getParameter(){
     param.append(ui->Lotto_lineEdit->text());
     param.append("_");
     param.append(ui->seriale_lineEdit->text());
-
-
     return param;
 }
 
-int MainWindow::update_status_bar(QString StatusBarContent){
-
+int MainWindow::update_status_bar(QString StatusBarContent)
+{
     statusBar()->showMessage(StatusBarContent);
     return 0;
 }
@@ -128,21 +115,21 @@ void MainWindow::setUserPsw(QString utente, QString password)
     return;
 }
 
-void MainWindow::superUser(){
+void MainWindow::superUser()
+{
     ui->load_configuration_pushButton->show();
     ui->load_configuration_pushButton->setEnabled(true);
     ui->save_configuration_pushButton->show();
     ui->save_configuration_pushButton->setEnabled(true);
     ui->suser_operations_pushButton->show();
     ui->suser_operations_pushButton->setEnabled(true);
-
     superuser=true;
-    logInSuccesfully();
     enablepanel();
     return;
 }
 
-QString MainWindow::get_net_name(){
+QString MainWindow::get_net_name()
+{
     QProcess getNetName;
     QString bashCommand("ifconfig | grep flags | awk '{print $1}'");
     QString netNamesContent, firstNetName, bashError, netnamesPath = QDir::currentPath();
@@ -168,15 +155,15 @@ QString MainWindow::get_net_name(){
     return firstNetName;
 }
 
-bool MainWindow:: compareMacs(QNetworkInterface iface)
+bool MainWindow::compareMacs(QNetworkInterface iface)
 {
     UsrPswDialog *m = qobject_cast<UsrPswDialog*>(this->parent());
     QString mymac = iface.hardwareAddress();
     QFile decrFile(decrCredDir);
     bool comparisonFlag = false;
 
-    QString decrContent = m->get_file_content(encrCredDir, true);
-    m->write_file_content(decrContent, decrCredDir, false);
+    QString decrContent = m->read_credentials(encrCredDir, true);
+    m->write_credentials(decrContent, decrCredDir, false);
 
     if (decrFile.exists())
     {
@@ -187,20 +174,12 @@ bool MainWindow:: compareMacs(QNetworkInterface iface)
         {
             QString loadedUser = macKey;
             QString loadedMac = macSettings.value(macKey).toString();
-
-            //cout << "key: " << loadedUser.toStdString() << endl;
-            //cout << "val: " << loadedMac.toStdString() << endl;
-            //cout<< loadedMac.compare(mymac) <<endl;
-
             if (!loadedMac.compare(mymac))
             {
                 comparisonFlag = true;
                 decrFile.remove();
                 break;
             }
-            else
-            {}
-
         }
         macSettings.endGroup();
     }
@@ -211,92 +190,149 @@ bool MainWindow:: compareMacs(QNetworkInterface iface)
     return comparisonFlag;
 }
 
-void MainWindow::logInSuccesfully(){
+void MainWindow::logInSuccesfully()
+{
     QList<QNetworkInterface> entries = QNetworkInterface::allInterfaces();
 
+    ip = "";
     for (int i=0;i<entries.count();i++){
-        QNetworkInterface iface= entries.at(i);
-        //qDebug() << "CIAO PRIMO FOR------";
-        //qDebug() << iface.name();
-        //qDebug() << iface.hardwareAddress();
-        //qDebug() << iface.hardwareAddress().compare("00:4E:00:01:00:05");
-        if(iface.flags().testFlag(QNetworkInterface::IsUp) && compareMacs(iface)){
-            //qDebug() << "TROVATO!";
-            for( int j =0 ; j< iface.addressEntries().count();j++){
-                //std::cout << iface.name().toUtf8().toStdString() << std::endl;
-                //qDebug() << "secondociclo------";
-                //qDebug() << j;
-                if(iface.addressEntries().at(j).ip().protocol()==QAbstractSocket::IPv4Protocol){
-                    //std::cout << iface.name().toUtf8().toStdString() << std::endl;
-                    //if(strstr(iface.name().toUtf8(), get_net_name().toUtf8())){
-                    if(compareMacs(iface)){
-                        ip = iface.addressEntries().at(j).ip().toString();
-                        //qDebug() << iface.addressEntries().at(j).ip().toString();
-                        //qDebug() << iface.name();
-                        //ip = iface.addressEntries().at(j).ip().toString();
-                        //qDebug() << "vaccagialla";
-                        //qDebug() << ip;
-                        //qDebug() << iface.addressEntries().at(j).ip().protocol();
-                    }else{//cout << get_net_name().toStdString() << endl;
-
-                    }
+        QNetworkInterface iface = entries.at(i);
+        qDebug() << "Found network interface " << iface.name() << "MAC: " << iface.hardwareAddress();
+        if (iface.flags().testFlag(QNetworkInterface::IsUp) && compareMacs(iface)) {
+            qDebug() << "Interface" << iface.name() << "is registered";
+            for( int j =0 ; j< iface.addressEntries().count();j++) {
+                if (iface.addressEntries().at(j).ip().protocol()==QAbstractSocket::IPv4Protocol) {
+                    ip = iface.addressEntries().at(j).ip().toString();
+                    qInfo() << "Found valid IP address for interface" << iface.name() << ":" << ip;
                 }
-                //qDebug() << "------secondocicloend";
             }
         }
-        //qDebug() << "------PRIMOCICLOEND";
     }
 
-           if(ip==NULL){
-                    //std::cout << "NOINTERNETCONNECTION";
-                    //qDebug() << "NOINTERNETCONNECTION";
-                    QMessageBox msgBoxwarning;
-                        msgBoxwarning.setText("No internet connection found");
-                        msgBoxwarning.setWindowTitle("Warning");
-                        msgBoxwarning.setIcon(QMessageBox::Warning);
-                        msgBoxwarning.exec();
-
-                        update_status_bar("WARNING: no internet connection");
-
-                }
-    popolate_line_combobox();
-    if (loadpreviousconfiguration()==1){ //non ottimizzato secondo me!!
-        on_line_comboBox_activated(ui->line_comboBox->currentText());
-        loadpreviousconfiguration();
-        on_model_comboBox_activated(ui->model_comboBox->currentText());
+    if (ip == "") {
+        qWarning() << "No internet connection or ethernet interface not registered";
+        QMessageBox msgBoxwarning;
+        msgBoxwarning.setText("No internet connection or ethernet interface not registered");
+        msgBoxwarning.setWindowTitle("Warning");
+        msgBoxwarning.setIcon(QMessageBox::Warning);
+        msgBoxwarning.exec();
+        update_status_bar("WARNING: no internet connection o ethernet interface not registered");
     }
+    populate_line_combobox();
     ui->logIn_pushButton->setEnabled(false);
     ui->logout_pushButton->setEnabled(true);
     ui->line_comboBox->setEnabled(true);
+    qDebug() << "Read last configuration for user" << user;
+    QString filename = sUserConfigDir + user + ".ini";
+    QFile file(filename);
+    if (!file.exists()) {
+        qWarning() << "Unable to find configuration file of user" << user;
+        return;
+    }
+    if (!file.open(QIODevice::ReadOnly|QIODevice::Text)) {
+        qWarning() << "Error reading configuration file of user" << user;
+        return;
+    }
+    QTextStream in(&file);
+    QString line = in.readLine();
+    qDebug () << "Read product line from user configuration file:" << line;
+    ui->line_comboBox->setCurrentText(line);
+    on_line_comboBox_activated(line);
+    QString model = in.readLine();
+    qDebug () << "Read product model from user configuration file:" << model;
+    ui->model_comboBox->setCurrentText(model);
+    on_model_comboBox_activated(model);
+    file.close();
 }
 
-void MainWindow::popolate_line_combobox(){
-
+void MainWindow::populate_line_combobox()
+{
+    qDebug() << "Read product lines configuration file";
     QString filename;
-    filename=(ConfigDir+"/line.ini");
+    filename=(sConfigDir + "/line.ini");
     QFile file(filename);
-
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        //qDebug() << "[ERRORE]Non sono riuscito ad aprire linecombobox!";
-
-    }else{
-        //qDebug() << "File aperto correttamente";
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qCritical() << "Unable to find line.ini file!";
+        return;
     }
     ui->line_comboBox->clear();
     QString line;
     QTextStream in(&file);
-    while (!in.atEnd()){
+    while (!in.atEnd()) {
         line = in.readLine();
-        if(line==""){ //la riga vuota è la fine della configuraione delle schede..
+        if (line=="") {
             break;
         }
+        qDebug() << "Found " << line;
         ui->line_comboBox->addItem(line);
     }
     file.close();
     return;
 }
 
-void MainWindow::enablepanel(){
+void MainWindow::on_line_comboBox_activated(const QString &line)
+{
+    qDebug() << "Read configuration file of product line" << line;
+    QString filename = sConfigDir + "/" + line + ".ini";
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qCritical() << "Unable to find" << line << ".ini file!";
+        return;
+    }
+    ui->model_comboBox->clear();
+    ui->connect_novasom_pushButton->setEnabled(false);
+    QString model;
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+        model = in.readLine();
+        if (model == "") {
+            break;
+        }
+        qDebug() << "Found " << model;
+        ui->model_comboBox->addItem(model);
+    }
+    ui->model_comboBox->setEnabled(true);
+    update_status_bar("Line selected: " + line);
+    file.close();
+    return;
+}
+
+void MainWindow::on_model_comboBox_activated(const QString &model)
+{
+    qDebug() << "Read configuration file of model" << model;
+    QString filename;
+    filename= sConfigDir + "/" + model + ".ini";
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qCritical() << "Unable to find" << model << ".ini file!";
+        update_status_bar("[ERROR] No configuration file for model " + model);
+        return;
+    }
+    QString strKeyFunc("CONFIG/");
+    QSettings *settings = 0;
+    settings = new QSettings(filename, QSettings::IniFormat);
+    QList<QCheckBox *> checkBoxes = this->findChildren<QCheckBox *>();
+    for (int i=0; i<checkBoxes.count(); ++i)
+    {
+        QString checkBoxName = checkBoxes.at(i)->objectName();
+        if (getvalue(strKeyFunc, settings , checkBoxName) == "true")
+        {
+            qDebug() << "Checkbox[" << i << "]: True";
+            checkBoxes.at(i)->setChecked(true);
+        }
+        else
+        {
+            qDebug() << "Checkbox[" << i << "]: False";
+            checkBoxes.at(i)->setChecked(false);
+        }
+    }
+    file.close();
+    ui->connect_novasom_pushButton->setEnabled(true);
+    update_status_bar("Model selected: : "+ model);
+}
+
+void MainWindow::enablepanel()
+{
     ui->audio_checkBox->setEnabled(true);
     ui->bt_checkBox->setEnabled(true);
     ui->console_checkBox->setEnabled(true);
@@ -314,11 +350,11 @@ void MainWindow::enablepanel(){
     ui->touch_checkBox->setEnabled(true);
     ui->usb_checkBox->setEnabled(true);
     ui->wifi_checkBox->setEnabled(true);
-
     return;
 }
 
-void MainWindow::disablepanel(){
+void MainWindow::disablepanel()
+{
     ui->audio_checkBox->setEnabled(false);
     ui->bt_checkBox->setEnabled(false);
     ui->console_checkBox->setEnabled(false);
@@ -336,30 +372,30 @@ void MainWindow::disablepanel(){
     ui->touch_checkBox->setEnabled(false);
     ui->usb_checkBox->setEnabled(false);
     ui->wifi_checkBox->setEnabled(false);
-
-
     return;
 }
 
 void MainWindow::on_logIn_pushButton_clicked()
 {
+    qDebug() << "Login button pressed (MainWindow)";
     UsrPswDialog *p = new UsrPswDialog(this);
     p->show();
 }
 
 void MainWindow::on_logout_pushButton_clicked()
 {
-    if(connectedNOVAsom>0){
+    qDebug() << "Logout button pressed";
+    if (connectedNOVAsom > 0) {
         on_disconnect_novasom_pushButton_clicked();
     }
-    if(superuser==true){
+    if (superuser==true) {
         superuser=false;
         ui->save_configuration_pushButton->hide();
         ui->load_configuration_pushButton->hide();
         ui->suser_operations_pushButton->hide();
         disablepanel();
     }
-    if(user.isNull()==false && psw.isNull()==false){
+    if (user.isNull()==false && psw.isNull()==false) {
         user.clear();
         psw.clear();
     }
@@ -369,7 +405,6 @@ void MainWindow::on_logout_pushButton_clicked()
     ui->model_comboBox->setEnabled(false);
     ui->connect_novasom_pushButton->setEnabled(false);
     ip="";
-
 }
 
 void MainWindow::on_disconnect_novasom_pushButton_clicked()
@@ -415,7 +450,7 @@ void MainWindow::on_disconnect_novasom_pushButton_clicked()
 
 void MainWindow:: savelastsetting(){
 
-    QString filename=userConfigDir+user+".ini";
+    QString filename=sUserConfigDir+user+".ini";
      if (filename.isEmpty())
      {
          return;
@@ -431,273 +466,14 @@ void MainWindow:: savelastsetting(){
     return;
 }
 
-void MainWindow::on_line_comboBox_activated(const QString &arg1)
-{
-    QString filename=(ConfigDir+"/"+arg1+".ini");
-     QFile file(filename);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-    }else{
-    }
-    ui->model_comboBox->clear();
-    ui->connect_novasom_pushButton->setEnabled(false);
-    QString line;
-    QTextStream in(&file);
-    while (!in.atEnd()){
-        line = in.readLine();
-        if(line==""){ //la riga vuota è la fine della configuraione delle schede..
-            break;
-        }
-        ui->model_comboBox->addItem(line);
-    }
-     ui->model_comboBox->setEnabled(true);
-     update_status_bar("Line selected : "+ arg1);
-     file.close();
-    return;
-}
 
-void MainWindow::on_model_comboBox_activated(const QString &arg1)
-{
-    QString filename;
-    filename=(ConfigDir+"/"+arg1+".ini");
-    QFile file(filename);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        //qDebug() << "[ERRORE]Non sono riuscito ad aprire "+ filename;
-        update_status_bar("[ERROR] No configuration file...Please contact us");
-    }else{
-        //qDebug() << "File aperto correttamente";
-        QString strKeyFunc("CONFIG/");
-        QSettings * settings = 0;
-        settings = new QSettings( filename, QSettings::IniFormat );
-
-        QList<QCheckBox *> checkBoxes = this->findChildren<QCheckBox *>();
-
-        for (int i=0; i<checkBoxes.count(); ++i)
-        {
-            QString checkBoxName = checkBoxes.at(i)->objectName();
-            if (getvalue(strKeyFunc, settings , checkBoxName) == "true")
-            {
-                //qDebug() << "true";
-                checkBoxes.at(i)->setChecked(true);
-            }
-            else
-            {
-                //qDebug() << "false";
-                checkBoxes.at(i)->setChecked(false);
-            }
-
-        }
-/*
-        if ( getvalue(strKeyFunc, settings , "audio_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->audio_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->audio_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "bt_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->bt_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->bt_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "console_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->console_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->console_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "cpu_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->cpu_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->cpu_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "eeprom_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->eeprom_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->eeprom_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "eMMC_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->eMMC_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->eMMC_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "eth_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->eth_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->eth_checkBox->setChecked(false);
-            }
-
-        if ( getvalue(strKeyFunc, settings , "hdmi_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->hdmi_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->hdmi_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "pcie_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->pcie_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->pcie_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "ram_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->ram_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->ram_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "rtc_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->rtc_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->rtc_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "sata_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->sata_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->sata_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "sdcard_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->sdcard_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->sdcard_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "seqDebug() << "false";nsors_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->sensors_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->sensors_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "touch_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->touch_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->touch_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "usb_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->usb_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->usb_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "wifi_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->wifi_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->wifi_checkBox->setChecked(false);
-            }*/
-            file.close();
-    }
-    ui->connect_novasom_pushButton->setEnabled(true);
-    update_status_bar("Model selected: : "+ arg1);
-    file.close();
-}
-
-int MainWindow:: loadpreviousconfiguration(){
-     QString filename=userConfigDir+user+".ini";
-     if (filename.isEmpty())
-     {
-         //qDebug() << "fileName is empty";
-         return -1;
-     }
-     QFile file(filename);
-     if(!file.exists()) return -1;
-     //qDebug ()<< filename << "sto cercando di aprire";
-     if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
-        //qDebug() << "Non sono riuscito ad aprire il file!";
-        return -1;
-         }
-     QString line;
-     QTextStream in(&file);
-     line = in.readLine();
-     //qDebug () << "ciaooooooooooooooooooooooooo " << line;
-     ui->line_comboBox->setCurrentText(line);
-     line = in.readLine();
-     //qDebug () << "ciaooooooooooooooooooooooooo " << line;
-     ui->model_comboBox->setCurrentText(line);
-
-     file.close();
-     return 1;
-
-}
 /*
 vi /etc/udev/rules.d/50-myusb.rules
 KERNEL=="ttyUSB[0-9]*",MODE="0666"
 KERNEL=="ttyACM[0-9]*",MODE="0666"
 */
-int initPort(int num,QSerialPortInfo info){
+int initPort(int num,QSerialPortInfo info)
+{
     serial[num].setPort(info);
     serialport=&serial[num];
     if (serial[num].open(QIODevice::ReadWrite))
@@ -713,7 +489,6 @@ int initPort(int num,QSerialPortInfo info){
         return -1;
     }
 }
-
 
 void MainWindow::on_connect_novasom_pushButton_clicked()
 {
@@ -789,7 +564,7 @@ void MainWindow::on_runtest_pushButton_clicked()
     ui->disconnect_novasom_pushButton->setEnabled(false);
     ui->logout_pushButton->setEnabled(false);
 
-    QFile fl(lan + "WebServerResult.txt");
+    QFile fl(sWebServerDir + "WebServerResult.txt");
     if(fl.exists()){
         //qDebug() << "esisteeeeeeeeeee222222";
         while(fl.exists()){
@@ -851,8 +626,8 @@ int MainWindow::testingNovasom(QSerialPort *serialp){
     if (filename.isEmpty()){
         return -1;
         }
-    QFile file(lan+filename+".sh");
-    QFile file1(lan+"WebServerResult.txt");
+    QFile file(sWebServerDir+filename+".sh");
+    QFile file1(sWebServerDir+"WebServerResult.txt");
 
     if(file1.exists()){
         if(file1.remove()){
@@ -941,7 +716,7 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
     tmp.append(ip);
     tmp.append(" report.txt \n\n ");
 
-     QFile fl(lan + "report.txt");
+     QFile fl(sWebServerDir + "report.txt");
      if(fl.exists()){
          //qDebug() << "esisteeeeeeeeeee";
          while(fl.exists()){
@@ -1074,7 +849,7 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
         char stdstr[20];
         QByteArray line;
         int error;
-        QFile fileerror(Fail+ui->PN_lineEdit->text()+"_"+ui->Lotto_lineEdit->text()+"error.txt");
+        QFile fileerror(sLogFailDir+ui->PN_lineEdit->text()+"_"+ui->Lotto_lineEdit->text()+"error.txt");
         if(fileerror.exists()){
             fileerror.open(QIODevice::ReadWrite | QIODevice::Text);
             line=fileerror.readAll();
@@ -1117,7 +892,7 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
 
 int MainWindow:: checkResult(){
     QByteArray linebytearray;
-    QFile file1(lan+"WebServerResult.txt");
+    QFile file1(sWebServerDir+"WebServerResult.txt");
     if(file1.exists()){
         //il risultato del test esiste!!
         //std::cout << "Il file esiste" << std::endl;
@@ -1206,7 +981,7 @@ int MainWindow:: checkResult(){
 void MainWindow::generateParameters(){
 
     QString filename,pn,lotto,oc;
-    filename=(ConfigDir+"/PN.ini");
+    filename=(sConfigDir+"/PN.ini");
     pn=ui->model_comboBox->currentText();
     ui->PN_lineEdit->setText(pn);
     oc=get_OC(pn);
@@ -1256,7 +1031,7 @@ void MainWindow::generateParameters(){
     if(getAuthentication() == 1){
 
         //RESETMODE
-        filename=LogDir+pn+"_"+lotto+".ini";
+        filename=sLogDir+pn+"_"+lotto+".ini";
         QFile file2(filename);
         QByteArray riga;
         char serialStr[6], buffer[7];
@@ -1301,7 +1076,7 @@ void MainWindow::generateParameters(){
     }else{
         //ProgressiveMODE
         //apri file, leggi ultimo seriale scritto, prendi successivo!!
-        filename=LogDir+pn+".ini";
+        filename=sLogDir+pn+".ini";
         QFile file3(filename);
         char serialStr[7];
         QByteArray riga;
@@ -1348,7 +1123,7 @@ void MainWindow::generateParameters(){
     //MAC
 
     char stdstr[20];
-    filename=MACdir+pn+".ini";
+    filename=sMACdir+pn+".ini";
     QFile file4(filename);
     QByteArray line;
     QString mac;
@@ -1506,7 +1281,7 @@ void MainWindow::on_Write_EEprom_pushButton_clicked()
         titolo.append("_");
         titolo.append(ui->Lotto_lineEdit->text());
         generateReport(titolo);
-        uploadReport(titolo+"report.pdf",directory);
+        uploadReport(titolo+"report.pdf",sTestedDir);
 
 
         ui->NextPort_pushButton->setEnabled(true);
@@ -1520,7 +1295,7 @@ void MainWindow::on_Write_EEprom_pushButton_clicked()
         QString titolo;
         QByteArray line;
         int error;
-        QFile fileerror(Fail+ui->PN_lineEdit->text()+"_"+ui->Lotto_lineEdit->text()+"error.txt");
+        QFile fileerror(sLogFailDir+ui->PN_lineEdit->text()+"_"+ui->Lotto_lineEdit->text()+"error.txt");
         fileerror.open(QIODevice::ReadWrite | QIODevice::Text);
         line=fileerror.readAll();
         error=atoi(line);
@@ -1551,7 +1326,7 @@ void MainWindow::on_Write_EEprom_pushButton_clicked()
 int MainWindow::generateReport(QString filename){
 
 
-    QFile report(directory+filename+".txt");
+    QFile report(sTestedDir+filename+".txt");
     //qDebug()<< filename;
 
     if(!report.open(QIODevice::ReadWrite|QIODevice::Text)){
@@ -1560,7 +1335,7 @@ int MainWindow::generateReport(QString filename){
         }
 
 
-    QFile original(lan + "report.txt");
+    QFile original(sWebServerDir + "report.txt");
 
 
     if(!original.open(QIODevice::ReadOnly|QIODevice::Text)){
@@ -1611,7 +1386,7 @@ int MainWindow::generateReport(QString filename){
 
 int MainWindow:: createPDF(QString filename){
 
-    QFile file(directory+filename+".txt");
+    QFile file(sTestedDir+filename+".txt");
 
     if (!file.open(QIODevice::ReadOnly|QIODevice::Text))
     {
@@ -1622,7 +1397,7 @@ int MainWindow:: createPDF(QString filename){
     QPrinter printer(QPrinter::HighResolution);
     printer.setOutputFormat(QPrinter::PdfFormat);
     printer.setPaperSize(QPrinter::A4);
-    printer.setOutputFileName(directory+filename+"report.pdf");
+    printer.setOutputFileName(sTestedDir+filename+"report.pdf");
 
     QPainter painter;
     painter.begin(&printer);
@@ -1671,9 +1446,9 @@ void MainWindow::on_Print_Label_pushButton_clicked()
 int MainWindow::generateLabel(QString filename){
 
 
-    QFile source(labeltemplate);
-    QFile destination(directory+filename);
-    QFile destination1(directory+"last_label.txt");
+    QFile source(sLabelTemplate);
+    QFile destination(sTestedDir+filename);
+    QFile destination1(sTestedDir+"last_label.txt");
     int len;
 
 
@@ -1806,300 +1581,6 @@ void MainWindow::on_testFail_checkBox_clicked()
 }
 
 
-void MainWindow::on_load_configuration_pushButton_clicked()
-{
-    QString fileName = QFileDialog::getOpenFileName(this,tr("Load Configuration File"), "D:/QtProjects/NOVATest",tr("Configuration Files (*.ini)"));
-    if (fileName.isEmpty())
-    {
-        qDebug() << "fileName is empty";
-        return;
-    }
-    else
-    {
-        qDebug() << "fileName :"+fileName;
-
-        QFile file(fileName);
-        if (!file.open(QIODevice::ReadOnly))
-        {
-            QMessageBox::information(this, tr("Unable to open file"),file.errorString());
-            qDebug() << "1";
-            return;
-        }
-        QString strKeyFunc("CONFIG/");
-        QSettings * settings = 0;
-
-        QFileInfo fi(fileName);
-        settings = new QSettings( fileName, QSettings::IniFormat );
-
-        QList<QCheckBox *> checkBoxes = this->findChildren<QCheckBox *>();
-
-        for (int i=0; i<checkBoxes.count(); ++i)
-        {
-            QString checkBoxName = checkBoxes.at(i)->objectName();
-            if (getvalue(strKeyFunc, settings , checkBoxName) == "true")
-            {
-                qDebug() << "true";
-                checkBoxes.at(i)->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                checkBoxes.at(i)->setChecked(false);
-            }
-
-        }
-/*
-        if ( getvalue(strKeyFunc, settings , "audio_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->audio_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->audio_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "bt_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->bt_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->bt_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "console_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->console_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->console_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "cpu_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->cpu_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->cpu_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "eeprom_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->eeprom_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->eeprom_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "eMMC_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->eMMC_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->eMMC_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "eth_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->eth_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->eth_checkBox->setChecked(false);
-            }
-
-        if ( getvalue(strKeyFunc, settings , "hdmi_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->hdmi_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->hdmi_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "ram_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->ram_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->ram_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "rtc_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->rtc_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->rtc_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "sdcard_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->sdcard_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->sdcard_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "sensors_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->sensors_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->sensors_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "touch_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->touch_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->touch_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "usb_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->usb_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->usb_checkBox->setChecked(false);
-            }
-        if ( getvalue(strKeyFunc, settings , "wifi_checkBox") == "true")
-            {
-                qDebug() << "true";
-                ui->wifi_checkBox->setChecked(true);
-            }
-            else
-            {
-                qDebug() << "false";
-                ui->wifi_checkBox->setChecked(false);
-            }*/
-        file.close();
-    }
-}
-
-void MainWindow::on_save_configuration_pushButton_clicked()
-{
-    QString fileName = QFileDialog::getSaveFileName(this,tr("Save Configuration File"), "D:/QtProjects/",tr("Configuration Files (*.ini)"));
-
-    if (fileName.isEmpty())
-    {
-        qDebug() << "fileName is empty";
-        return;
-    }
-    else
-    {
-        QFile file(fileName);
-        if (!file.open(QIODevice::WriteOnly))
-        {
-            QMessageBox::information(this, tr("Unable to open file"),file.errorString());
-            qDebug() << "5";
-            return;
-        }
-        QTextStream out(&file);
-        out << QString("[CONFIG]\r\n");
-
-        QList<QCheckBox *> checkBoxes = this->findChildren<QCheckBox *>();
-
-        for (int i=0; i<checkBoxes.count(); ++i)
-        {
-            QString checkBoxName = checkBoxes.at(i)->objectName();
-            if (checkBoxes.at(i)->isChecked())
-                out << QString(checkBoxName.append("=true\r\n"));
-            else
-                out << QString(checkBoxName.append("=false\r\n"));
-        }
-/*
-        if ( ui->audio_checkBox->isChecked() )
-            out << QString("audio_checkBox=true\r\n");
-        else
-            out << QString("audio_checkBox=false\r\n");
-        if ( ui->bt_checkBox->isChecked() )
-            out << QString("bt_checkBox=true\r\n");
-        else
-            out << QString("bt_checkBox=false\r\n");
-        if ( ui->console_checkBox->isChecked() )
-            out << QString("console_checkBox=true\r\n");
-        else
-            out << QString("console_checkBox=false\r\n");
-        if ( ui->cpu_checkBox->isChecked() )
-            out << QString("cpu_checkBox=true\r\n");
-        else
-            out << QString("cpu_checkBox=false\r\n");
-        if ( ui->eeprom_checkBox->isChecked() )
-            out << QString("eeprom_checkBox=true\r\n");
-        else
-            out << QString("eeprom_checkBox=false\r\n");
-        if ( ui->eMMC_checkBox->isChecked() )
-            out << QString("eMMC_checkBox=true\r\n");
-        else
-            out << QString("eMMC_checkBox=false\r\n");
-        if ( ui->eth_checkBox->isChecked() )
-            out << QString("eth_checkBox=true\r\n");
-        else
-            out << QString("eth_checkBox=false\r\n");
-        if ( ui->hdmi_checkBox->isChecked() )
-            out << QString("hdmi_checkBox=true\r\n");
-        else
-            out << QString("hdmi_checkBox=false\r\n");
-        if ( ui->ram_checkBox->isChecked() )
-            out << QString("ram_checkBox=true\r\n");
-        else
-            out << QString("ram_checkBox=false\r\n");
-        if ( ui->rtc_checkBox->isChecked() )
-            out << QString("rtc_checkBox=true\r\n");
-        else
-            out << QString("rtc_checkBox=false\r\n");
-        if ( ui->sdcard_checkBox->isChecked() )
-            out << QString("sdcard_checkBox=true\r\n");
-        else
-            out << QString("sdcard_checkBox=false\r\n");
-        if ( ui->sensors_checkBox->isChecked() )
-            out << QString("sensors_checkBox=true\r\n");
-        else
-            out << QString("sensors_checkBox=false\r\n");
-        if ( ui->touch_checkBox->isChecked() )
-            out << QString("touch_checkBox=true\r\n");
-        else
-            out << QString("touch_checkBox=false\r\n");
-        if ( ui->usb_checkBox->isChecked() )
-            out << QString("usb_checkBox=true\r\n");
-        else
-            out << QString("usb_checkBox=false\r\n");
-        if ( ui->wifi_checkBox->isChecked() )
-            out << QString("wifi_checkBox=true\r\n");
-        else
-            out << QString("wifi_checkBox=false\r\n");*/
-        file.close();
-    }
-}
-
 void MainWindow::on_NextPort_pushButton_clicked()
 {
     ui->Print_Label_pushButton->setEnabled(false);
@@ -2119,15 +1600,15 @@ void MainWindow::on_readDataMatrix_clicked()
     //p->show();
 }
 
-int MainWindow::getAuthentication(){
+int MainWindow::getAuthentication()
+{
     return authenticated;
 }
 
-
-void MainWindow::setAuthentication(int authFlag){
+void MainWindow::setAuthentication(int authFlag)
+{
     authenticated = authFlag;
 }
-
 
 QString MainWindow::get_OC(QString pn){
 
@@ -2141,7 +1622,7 @@ QString MainWindow::get_OC(QString pn){
     //cout << ConfigDir.toStdString()+filename.toStdString() << endl;
     //cout << "Cerchiamo key:" << endl;
    //cout << pn.toStdString() << endl;
-    settings = new QSettings( ConfigDir+filename, QSettings::IniFormat );
+    settings = new QSettings( sConfigDir+filename, QSettings::IniFormat );
     OC= getvalue(strKeyFunc, settings, pn);
     //cout << "trovato:" << endl;
    //cout << OC.toStdString() << endl;

@@ -15,212 +15,186 @@ SuserOperations::~SuserOperations()
     delete ui;
 }
 
-void SuserOperations::get_backup()
+void SuserOperations::backup_credentials()
 {
     QFile encrFile(encrCredDir);
     QFile encrBakFile(encrCredBakDir);
     if (encrBakFile.exists())
         encrBakFile.remove();
-    if (encrFile.exists())
+    if (encrFile.exists()) {
+        qDebug() << "Credentials file backup stored";
         encrFile.copy(encrCredBakDir);
-    else
-    {
+    }
+    else {
+        qCritical() << "Unable to open credentials file";
         QMessageBox::critical(this, "No credentials file", encrFile.errorString());
     }
 }
 
 uint SuserOperations::user_operations()
 {
+    qDebug() << "User operation selected";
     QFile encrFile(decrCredDir);
     QFile decrFile(decrCredDir);
-
     QString group;
-
     if (decrFile.exists())
         decrFile.remove();
-
-    QString decrContent = m->get_file_content(encrCredDir, true);
-    m->write_file_content(decrContent, decrCredDir, false);
-
+    QString decrContent = m->read_credentials(encrCredDir, true);
+    m->write_credentials(decrContent, decrCredDir, false);
     ui->current_content_textBrowser->setText(decrContent);
-
     QString uname = ui->uname_lineEdit->text();
     QString passw = ui->passw_lineEdit->text();
-
-    if (!uname.isEmpty() && !passw.isEmpty())
-    {
-        get_backup();
-
+    if (!uname.isEmpty() && !passw.isEmpty()) {
+        backup_credentials();
         QSettings settings(decrCredDir, QSettings::IniFormat);
         if (ui->suser_checkBox->isChecked())
             group = "SUSERS";
         else
             group = "USERS";;
         settings.beginGroup(group);
-
-        if (ui->usr_add_radioButton->isChecked())
-        {
-            if (settings.contains(uname))
-            {
+        if (ui->usr_add_radioButton->isChecked()) {
+            qDebug() << "User add operation selected";
+            if (settings.contains(uname)) {
+                qDebug() << "Username" << uname << "already existing";
                 QMessageBox::StandardButton reply = QMessageBox::warning(this, "Existing user", "This user already exists. Do you want to update it?",
                                                                          QMessageBox::Yes | QMessageBox::No);
-                if (reply == QMessageBox::Yes)
-                {
+                if (reply == QMessageBox::Yes) {
+                    qDebug() << "User" << uname << "updated";
                     QString old_passw = settings.value(uname, "r").toString();
                     QString uname_temp = uname;
-
                     decrContent.replace(uname.append("=").append(old_passw), uname_temp.append("=").append(passw));
                     QMessageBox::information(this, "User updated", "Existing credentials updated successfully.");
                     ui->current_content_textBrowser->setText(decrContent);
                 }
-                else{}
-
             }
-            else
-            {
-                QString newuser = uname.append("=").append(passw.append("\n"));
-
-                if (ui->suser_checkBox->isChecked())
+            else {
+                QString newuser = uname + "=" + passw + "\n";
+                if (ui->suser_checkBox->isChecked()) {
+                    qDebug() << "User" << uname << "added (Super user)";
                     decrContent.insert(decrContent.indexOf("[SUSERS]")+9, newuser);
-                else
+                }
+                else {
+                    qDebug() << "User" << uname << "added (Normal user)";
                     decrContent.insert(decrContent.indexOf("[USERS]")+8, newuser);
+                }
                 ui->current_content_textBrowser->setText(decrContent);
             }
-
         }
-        else if (ui->usr_del_radioButton->isChecked())
-        {
-            if (settings.contains(uname) && passw==settings.value(uname).toString())
-            {
+        else if (ui->usr_del_radioButton->isChecked()) {
+            qDebug() << "User delete operation selected";
+            if (settings.contains(uname) && passw==settings.value(uname).toString()) {
                 const QStringList userKeys = settings.childKeys();
-
-                if (group=="SUSERS" && userKeys.size()==1)
+                if (group=="SUSERS" && userKeys.size()==1) {
+                    qDebug() << "Can't delete unique superuser" << uname;
                     QMessageBox::warning(this, "Unique Suser", "There must be at least one super user!");
-                else
-                {
+                }
+                else {
+                    qDebug() << "User" << uname << "deleted";
                     QString credential;
                     credential = (uname.append("=").append(passw));
                     decrContent.remove(credential);
                     decrContent.replace("\n\n", "\n");
                 }
-
             }
-            else
-            {
+            else {
                 QMessageBox::information(this, "Invalid credentials", "This user does not exist.");
                 return 3;
             }
             ui->current_content_textBrowser->setText(decrContent);
-
         }
         settings.endGroup();
         decrFile.remove();
         encrFile.remove();
-        m->write_file_content(decrContent, decrCredDir, false);
-        m->write_file_content(decrContent, encrCredDir, true);
-        //cout << "Decrypted file content: " << endl <<decrContent.toStdString() << endl << endl;
+        m->write_credentials(decrContent, decrCredDir, false);
+        m->write_credentials(decrContent, encrCredDir, true);
     }
-    if (!ui->keep_decr_checkBox->isChecked() && decrFile.exists())
+    if (!ui->keep_decr_checkBox->isChecked() && decrFile.exists()) {
+        qDebug() << "Credentials decrypted file removed";
         decrFile.remove();
-    else
-    {
+    }
+    else {
+        qWarning() << "Credentials decrypted file stored";
         ui->current_content_textBrowser->setText(decrContent);
         QMessageBox::information(this, "File created", "Decrypted file has been created.");
         return 1;
     }
-
     return 0;
 }
 
 uint SuserOperations::mac_operations()
 {
+    qDebug() << "MAC address operation selected";
     QFile encrFile(encrCredDir);
     QFile decrFile(decrCredDir);
-
     if (decrFile.exists())
         decrFile.remove();
-
-    QString decrContent = m->get_file_content(encrCredDir, true);
-    m->write_file_content(decrContent, decrCredDir, false);
-
+    QString decrContent = m->read_credentials(encrCredDir, true);
+    m->write_credentials(decrContent, decrCredDir, false);
     QSettings settings(decrCredDir, QSettings::IniFormat);
-    settings.beginGroup("TRUEMAC");
-
     QString host = ui->hname_lineEdit->text();
     QString macnum = ui->macnum_lineEdit->text();
-
-    if (!host.isEmpty() && !macnum.isEmpty())
-    {
+    if (!host.isEmpty() && !macnum.isEmpty()) {
+        settings.beginGroup("TRUEMAC");
         macnum = macnum.toUpper();
-        if (macnum.size()==12)
-        {
+        if (macnum.size()==12) {
             for (int i=2; i<=14; i+=3)
                 macnum.insert(i, ":");
         }
-        else if (!(macnum.size()==17))
-        {
+        else if (!(macnum.size()==17)) {
             QMessageBox::information(this, "Non valid mac address", "Please enter a valid MAC address.");
             return 1;
         }
-
-
-        if (ui->mac_add_radioButton->isChecked())
-        {
-            if (settings.contains(host))
-            {
+        if (ui->mac_add_radioButton->isChecked()) {
+            qDebug() << "MacAddress add operation selected";
+            if (settings.contains(host)) {
+                qDebug() << "Host" << host << "already exixting";
                 QMessageBox::StandardButton reply = QMessageBox::warning(this, "Existing host", "This host already exists. Do you want to update it?",
                                                                          QMessageBox::Yes | QMessageBox::No);
-                if (reply == QMessageBox::Yes)
-                {
-                    QString old_passw = settings.value(host, "r").toString();
+                if (reply == QMessageBox::Yes) {
+                    qDebug() << "Host" << host << "updated with MAC" << macnum;
+                    QString old_mac = settings.value(host, "r").toString();
                     QString host_temp = host;
-
-                    decrContent.replace(host.append("=").append(old_passw), host_temp.append("=").append(macnum));
+                    decrContent.replace(host.append("=").append(old_mac), host_temp.append("=").append(macnum));
                     QMessageBox::information(this, "Host updated", "Existing MAC address updated successfully.");
                     ui->current_content_textBrowser->setText(decrContent);
                 }
-                else{}
             }
-            else
-            {
-                QString newmac = host.append("=").append(macnum.append("\n"));
+            else {
+                qDebug() << "Host" << host << "added with MAC" << macnum;
+                QString newmac = host + "=" + macnum + "\n";
                 decrContent.insert(decrContent.indexOf("[TRUEMAC]")+10, newmac);
             }
-
         }
-        else if (ui->mac_del_radioButton->isChecked())
-        {
-            //cout <<"yinemi"<<endl;
-            if (settings.contains(host))
-            {
+        else if (ui->mac_del_radioButton->isChecked()) {
+            qDebug() << "MacAddress delete operation selected";
+            if (settings.contains(host)) {
+                qDebug() << "Host" << host << "with MAC" << macnum << "deleted";
                 QString entry;
                 entry = (host.append("=").append(macnum));
                 decrContent.remove(entry);
                 decrContent.replace("\n\n", "\n");
-                //cout <<"buraya girmiyor:("<<endl;
             }
-            else
+            else {
+                qDebug() << "Host" << host << "does not exist";
                 QMessageBox::information(this, "Invalid entry", "This entry does not exist.");
-
+            }
         }
-
-    }
-    settings.endGroup();
-    decrFile.remove();
-    encrFile.remove();
-    m->write_file_content(decrContent, decrCredDir, false);
-    m->write_file_content(decrContent, encrCredDir, true);
-    //cout << "Decrypted file content: " << endl <<decrContent.toStdString() << endl << endl;
-
-    if (!ui->keep_decr_checkBox->isChecked() && decrFile.exists())
+        settings.endGroup();
         decrFile.remove();
-    else
-    {
+        encrFile.remove();
+        m->write_credentials(decrContent, decrCredDir, false);
+        m->write_credentials(decrContent, encrCredDir, true);
+    }
+    if (!ui->keep_decr_checkBox->isChecked() && decrFile.exists()) {
+        qDebug() << "Credentials decrypted file removed";
+        decrFile.remove();
+    }
+    else {
+        qWarning() << "Credentials decrypted file stored";
         ui->current_content_textBrowser->setText(decrContent);
         QMessageBox::information(this, "File created", "Decrypted file has been created.");
         return 1;
     }
-
     ui->current_content_textBrowser->setText(decrContent);
     return 0;
 }
@@ -229,6 +203,7 @@ void SuserOperations::on_apply_pushButton_clicked()
 {
     uint usr_ops_return_flag;
 
+    qDebug() << "Apply button pressed";
     switch (ui->operations_tab->currentIndex()) {
     case 0:
         usr_ops_return_flag = user_operations();
@@ -237,7 +212,6 @@ void SuserOperations::on_apply_pushButton_clicked()
         usr_ops_return_flag = mac_operations();
         break;
     default:
-        //cout << "How is this possible!!!" << endl;
         break;
     }
 
@@ -256,24 +230,6 @@ void SuserOperations::on_apply_pushButton_clicked()
     ui->mac_del_radioButton->setAutoExclusive(true);
 
     Q_UNUSED(usr_ops_return_flag);
-}
-
-void SuserOperations::on_select_file_pushButton_clicked()
-{
-    QString fileName = QFileDialog::getOpenFileName(this,tr("Load Configuration File"), "D:/QtProjects/NOVATest",tr("Configuration Files (*.ini)"));
-    if (fileName.isEmpty())
-    {
-        qDebug() << "fileName is empty";
-        return;
-    }
-    else
-    {
-        get_backup();
-        QString decrContent = m->get_file_content(decrCredDir, false);
-        m->write_file_content(decrContent, encrCredDir, true);
-        QString newContent = m->get_file_content(encrCredDir, true);
-        ui->current_content_textBrowser->setText(newContent);
-    }
 }
 
 void SuserOperations::on_done_pushButton_clicked()

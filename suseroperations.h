@@ -18,15 +18,9 @@ public:
 
 private slots:
     void on_apply_pushButton_clicked();
-
-    void on_select_file_pushButton_clicked();
-
     void on_done_pushButton_clicked();
-
-    void get_backup();
-
+    void backup_credentials();
     uint user_operations();
-
     uint mac_operations();
 
 private:

@@ -20,17 +20,14 @@ class UsrPswDialog : public QDialog
 public:
     explicit UsrPswDialog(QWidget *parent = 0);
     ~UsrPswDialog();
-    QString get_file_content(QString sourceDir, bool decrypt);
-    void write_file_content(QString content, QString targetDir, bool crypt);
+    QString read_credentials(QString sourceDir, bool decrypt);
+    void write_credentials(QString content, QString targetDir, bool crypt);
 
 
 private slots:
     void on_logIn_pushButton_clicked();
-
     void on_cancel_pushButton_clicked();
-
     uint authentication(QString uname, QString pswd);
-
     void on_clear_pushButton_clicked();
 
 private:

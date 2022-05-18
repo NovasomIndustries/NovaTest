@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     // Install our message handler.
     qInstallMessageHandler(SyslogMessageHandler);
 
-    qInfo("NovaTest started");
+    qInfo() << "========== NovaTest started =========";
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
