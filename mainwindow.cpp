@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->suser_operations_pushButton->hide();
 
     update_status_bar("Please LogIn...");
-    setWindowTitle("NOVAtest Ver. 1.5.0");
+    setWindowTitle("NOVAtest Ver. 1.6.0");
 }
 
 MainWindow::~MainWindow()
