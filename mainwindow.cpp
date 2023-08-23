@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 #define QT_NO_DEBUG_OUTPUT
+#define PG_USE_TFTP_ON_TARGET
 
 using namespace std;
 
@@ -936,20 +937,33 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
         }
     }while(k==-2);
 
+    QFile fl(lan + "report.txt");
+    if(fl.exists()) {
+        fl.remove();
+    }
+
+#ifdef PG_USE_TFTP_ON_TARGET
+    // For use tftp the destination file need to already exist and with write permission for the tftp user: create here an empty file with write permission to all
+    QByteArray command;
+    command.append("touch ");
+    command.append(lan);
+    command.append("report.txt");
+    system(command);
+    command.clear();
+    command.append("chmod a+w ");
+    command.append(lan);
+    command.append("report.txt");
+    system(command);
+    QByteArray tmp;
+    tmp.append("unix2dos report.txt ; tftp -l /tmp/report.txt -r report.txt -p ");
+    tmp.append(ip);
+    tmp.append("\n\n ");
+#else
     QByteArray tmp;
     tmp.append("unix2dos report.txt ; ftpput --username novasomindustries --password novasomindustries ");
     tmp.append(ip);
     tmp.append(" report.txt \n\n ");
-
-     QFile fl(lan + "report.txt");
-     if(fl.exists()){
-         //qDebug() << "esisteeeeeeeeeee";
-         while(fl.exists()){
-             //std::cout << "cicloooooo" << std::endl;
-             fl.remove();
-         }
-         //qDebug() << "remoooveeeeee";
-     }
+#endif
 
     if(k==0){
         //test pass
@@ -1109,10 +1123,6 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
     }else{
         //errore!!
     }
-
-
-//adfgsghgfds//
-
 }
 
 int MainWindow:: checkResult(){
