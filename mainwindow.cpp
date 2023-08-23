@@ -896,7 +896,8 @@ int MainWindow::testingNovasom(QSerialPort *serialp){
     serialp->write(buffer);
     serialp->write("\n");
     serialp->write("dos2unix ./test.sh\nchmod 777 test.sh\n");
-    serialp->write("touch report.txt\n");
+//    serialp->write("touch report.txt\n");
+    serialp->write("rm report.txt\n");
     serialp->write("./test.sh >> report.txt\n");
 
 
