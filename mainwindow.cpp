@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "suseroperations.h"
 #include "usrpswdialog.h"
@@ -12,6 +12,7 @@
 
 #define QT_NO_DEBUG_OUTPUT
 #define PG_USE_TFTP_ON_TARGET
+#define PG_UPLOAD_REPORT_ON_FTP
 
 using namespace std;
 
@@ -1391,7 +1392,7 @@ void MainWindow::generateParameters(){
     my_itoa(macseriale,stdstr);
     //qDebug()<<macseriale;
     //std::cout << "macseriale: "<< macseriale << std::endl;
-    qDebug()<<stdstr;
+    //qDebug() <<stdstr;
     //std::cout << "stdstr: "<< stdstr << std::endl;
     if(!file4.isOpen()){
         file4.open(QIODevice::ReadWrite | QIODevice::Text);
@@ -1822,18 +1823,18 @@ void MainWindow::on_load_configuration_pushButton_clicked()
     QString fileName = QFileDialog::getOpenFileName(this,tr("Load Configuration File"), "D:/QtProjects/NOVATest",tr("Configuration Files (*.ini)"));
     if (fileName.isEmpty())
     {
-        qDebug() << "fileName is empty";
+        //qDebug() << "fileName is empty";
         return;
     }
     else
     {
-        qDebug() << "fileName :"+fileName;
+        //qDebug() << "fileName :"+fileName;
 
         QFile file(fileName);
         if (!file.open(QIODevice::ReadOnly))
         {
             QMessageBox::information(this, tr("Unable to open file"),file.errorString());
-            qDebug() << "1";
+            //qDebug() << "1";
             return;
         }
         QString strKeyFunc("CONFIG/");
@@ -1849,12 +1850,12 @@ void MainWindow::on_load_configuration_pushButton_clicked()
             QString checkBoxName = checkBoxes.at(i)->objectName();
             if (getvalue(strKeyFunc, settings , checkBoxName) == "true")
             {
-                qDebug() << "true";
+                //qDebug() << "true";
                 checkBoxes.at(i)->setChecked(true);
             }
             else
             {
-                qDebug() << "false";
+                //qDebug() << "false";
                 checkBoxes.at(i)->setChecked(false);
             }
 
@@ -2021,7 +2022,7 @@ void MainWindow::on_save_configuration_pushButton_clicked()
 
     if (fileName.isEmpty())
     {
-        qDebug() << "fileName is empty";
+        //qDebug() << "fileName is empty";
         return;
     }
     else
@@ -2030,7 +2031,7 @@ void MainWindow::on_save_configuration_pushButton_clicked()
         if (!file.open(QIODevice::WriteOnly))
         {
             QMessageBox::information(this, tr("Unable to open file"),file.errorString());
-            qDebug() << "5";
+            //qDebug() << "5";
             return;
         }
         QTextStream out(&file);
@@ -2185,7 +2186,7 @@ void MainWindow::setPsw(const QString &value)
 
 
 void MainWindow::replyFinished(QNetworkReply *reply){
-    qDebug() << "reply signal************";
+    //qDebug() << "reply signal************";
     connect(this, SIGNAL(pswNlogSig(QString)), this, SLOT(pswNlogSlt(QString)));
     QString answer = QString::fromUtf8(reply->readAll());
     //QByteArray byte_content = reply->readAll();
@@ -2196,11 +2197,50 @@ void MainWindow::replyFinished(QNetworkReply *reply){
 
 void MainWindow::pswNlogSlt(QString logstr){
     setPswNlog(logstr);
-    qDebug() << logstr+" pswNlogSlt";
+    //qDebug() << logstr+" pswNlogSlt";
 }
 
-int MainWindow::uploadReport(QString filename, QString path){
+#define FTP_URL         "ftp.emc-computers.ro"
+#define FTP_USERNAME    "novaftp@emc-computers.ro"
+#define FTP_PASSWORD    "XZqEgnU7"
+#define FTP_PATH        "./"
 
+int MainWindow::uploadReport(QString filename, QString path)
+{
+#ifdef PG_UPLOAD_REPORT_ON_FTP
+    QString command;
+/*
+    command.append("ftp-upload -h ");
+    command.append(FTP_URL);
+    command.append(" -u ");
+    command.append(FTP_USERNAME);
+    command.append(" --password ");
+    command.append(FTP_PASSWORD);
+    command.append(" -d ");
+    command.append(FTP_PATH);
+    command.append(" --passive");
+    command.append(" ");
+    command.append(path);
+    command.append(filename);
+*/
+    command.append("ftp -n <<EOF\npassive\nopen ");
+    command.append(FTP_URL);
+    command.append("\n user ");
+    command.append(FTP_USERNAME);
+    command.append(" ");
+    command.append(FTP_PASSWORD);
+    command.append("\nput ");
+    command.append(path);
+    command.append(filename);
+    command.append(" ");
+    command.append(filename);
+    command.append("\nEOF\n");
+    qDebug() << "FTP upload:<" << command << ">";
+    int rc = system(command.toStdString().c_str());
+    qDebug() << "FTP upload completed (" << rc << + ")";
+    return rc;
+
+#else
     /*
     QString command;
     char *c;
@@ -2249,5 +2289,5 @@ int MainWindow::uploadReport(QString filename, QString path){
     //cout << "command UPLOADING" << endl;
     //cout << command.toStdString() << endl;
     return system(command);
-
+#endif
 }
