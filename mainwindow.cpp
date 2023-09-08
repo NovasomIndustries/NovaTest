@@ -845,7 +845,7 @@ int MainWindow::testingNovasom(QSerialPort *serialp){
     QByteArray line;
     QString filename;
 
-    line.append("echo \"REFERENCE_SERVER="+ip+"\" > /etc/sysconfig/system_vars\n");
+    line.append("echo 'export REFERENCE_SERVER="+ip+"' > /etc/sysconfig/system_vars\n");
     line.append(". /etc/sysconfig/system_vars\n");
     serialp->write(line);
 
