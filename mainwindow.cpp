@@ -778,7 +778,7 @@ void MainWindow::on_connect_novasom_pushButton_clicked()
     //itoa(i,ciao,10);
     my_itoa(i,ciao);
     update_status_bar(messaggio+ciao);
-    msgBox.setText("Please insert microSD card into NOVAsom, then power on the boards and wait splash screen.");
+    msgBox.setText("Please insert microSD card into NOVAsom, then power on the boards and wait that all led flashing.");
     msgBox.setWindowTitle("Checking NOVAsom.");
     msgBox.exec();
  return;
@@ -1131,13 +1131,9 @@ int MainWindow:: checkResult(){
     QByteArray linebytearray;
     QFile file1(lan+"WebServerResult.txt");
     if(file1.exists()){
-        //il risultato del test esiste!!
-        //std::cout << "Il file esiste" << std::endl;
-
         if (!file1.open(QIODevice::ReadOnly|QIODevice::Text)){
             QMessageBox::information(this, tr("Unable to open file"),file1.errorString());
-            //qDebug() << "3";
-            //std::cout << "non riesco ad aprirlo" << std::endl;
+            qDebug() << "Failed to open WebServerResult.txt";
             return -1;
            }
        linebytearray=file1.readAll();
@@ -1147,10 +1143,8 @@ int MainWindow:: checkResult(){
        err.setWindowTitle("Test Fail");
        err.setInformativeText("Test Fail");
        if(linebytearray.toStdString()=="OK"){
-
-
+           qDebug() << "WebServerResult.txt contains OK";
            QMessageBox msgBox;
-           //std::cout << "Test base passato!" << std::endl;
 
                msgBox.setText("Check video...");
                msgBox.setInformativeText("Can you see video?");
@@ -1161,7 +1155,7 @@ int MainWindow:: checkResult(){
                case QMessageBox::Yes:
                    ui->testpass_checkBox->setChecked(true);
                    ui->testFail_checkBox->setChecked(false);
-                   //std::cout << "TestVideoOk" << std::endl;
+                   qDebug() << "Test video OK";
                    return 0;
                    break;
 
@@ -1169,18 +1163,15 @@ int MainWindow:: checkResult(){
                    ui->testpass_checkBox->setChecked(false);
                    ui->testFail_checkBox->setChecked(true);
                    err.exec();
-                   //std::cout << "TestVideoFalse!" << std::endl;
+                   qDebug() << "Test video failed";
                    return 1;
                    break;
                default:
-                   //should never be reached
-                   //std::cout << "Perchè sono qui?" << std::endl;
                    break;
                }
            return 0;
        }else if (linebytearray.toStdString()=="KO") {
-           //Test Fail!!
-           //std::cout << "TestBaseFalse!" << std::endl;
+           qDebug() << "WebServerResult.txt contains KO";
            QMessageBox msgBox1;
                msgBox1.setText("Test Fail.");
                msgBox1.setWindowTitle("Check result...");
@@ -1190,10 +1181,7 @@ int MainWindow:: checkResult(){
            ui->testFail_checkBox->setChecked(true);
            return 1;
        }else{
-           //test ????
-           //std::cout << "Risultatodeltest sconosciuto" << std::endl;
-           //qDebug() << "TEST booooooooooooooooo!";
-
+           qDebug() << "WebServerResult.txt contains " << linebytearray;
            QMessageBox msgBox2;
                msgBox2.setText("Problema sconosciuto...\nFile risultato non corretto.Ripetere il test...");
                msgBox2.setWindowTitle("???");
@@ -1204,13 +1192,11 @@ int MainWindow:: checkResult(){
        }
 
     }else{
-        //std::cout << "Il risultato non esiste!" << std::endl;
-        //il risultato del test non esiste!!!Problemi sul webserver???
         QMessageBox msgBox3;
             msgBox3.setText("WebServer problem...No network?? ");
             msgBox3.setWindowTitle("Check result...");
             msgBox3.exec();
-        //qDebug()<<"Risultato non trovato...Problema di rete??";
+        qDebug() << "WebServerResult.txt not found";
         return -2;
     }
 }
