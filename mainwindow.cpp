@@ -791,20 +791,7 @@ void MainWindow::on_runtest_pushButton_clicked()
     ui->disconnect_novasom_pushButton->setEnabled(false);
     ui->logout_pushButton->setEnabled(false);
 
-    QFile fl(lan + "WebServerResult.txt");
-    if(fl.exists()){
-        //qDebug() << "esisteeeeeeeeeee222222";
-        while(fl.exists()){
-             //qDebug() << "2222222esisteeeeeeeeeee222222";
-            fl.remove();
-            //std::cout << fl.errorString().toStdString() << std::endl;
-        }
-        //qDebug() << "remoooveeeeee2222222";
-        //std::cout << "rimossa2222222" << std::endl;
-    }
-
     QEventLoop loop;
-
     for (int i=0;i<connectedNOVAsom;i++){
         //std::cout << i << std::endl;
         if (serial[i].isOpen()){
@@ -836,7 +823,6 @@ void MainWindow::on_runtest_pushButton_clicked()
     ui->disconnect_novasom_pushButton->setEnabled(true);
     ui->readDataMatrix->setEnabled(false);
     ui->Print_Label_pushButton->setEnabled(false);
-
 }
 
 int MainWindow::testingNovasom(QSerialPort *serialp){
@@ -856,32 +842,26 @@ int MainWindow::testingNovasom(QSerialPort *serialp){
     QFile file(lan+filename+".sh");
     QFile file1(lan+"WebServerResult.txt");
 
-    if(file1.exists()){
-        if(file1.remove()){
-            //std::cout << "EliminatoTestingnovasom" << std::endl;
-        }else{
-                //std::cout << "NONeliminatoTestingNovasom" << std::endl;
-            QMessageBox msgBox;
-                msgBox.setText("[Error!]");
-                msgBox.setWindowTitle("FileServerError-non sono riuscito ad eliminare il file risultato");
-                msgBox.exec();
-                return -1;
+    if(file1.exists()) {
+        if(file1.remove()) {
+            qDebug() << "WebServerResult.txt removed";
         }
-    }else{
-
-        //std::cout << "Il file Non esiste!" << std::endl;
-
+        else {
+            qCritical() << "Failed to remove WebServerResult.txt!";
+            QMessageBox msgBox;
+            msgBox.setText("[Error!]");
+            msgBox.setWindowTitle("FileServerError-non sono riuscito ad eliminare il file risultato");
+            msgBox.exec();
+            return -1;
+        }
+    }
+    else {
     }
 
-    if(file.exists()){
-       //do nothing
-
-
-
-    }else{
-
-        //il file non esiste!lo compilo!//non implementato per questa versione!!
-
+    if(file.exists()) {
+    }
+    else {
+        qCritical() << "File '" << file.fileName() << "' not found!";
     }
     serialp->write("\ncd /tmp;rm test.sh\n");
     QString tmp;
@@ -900,8 +880,6 @@ int MainWindow::testingNovasom(QSerialPort *serialp){
 //    serialp->write("touch report.txt\n");
     serialp->write("rm report.txt\n");
     serialp->write("./test.sh >> report.txt\n");
-
-
     return 0;
 }
 
@@ -918,10 +896,10 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
     int escape;
     escape=0;
 
-    do{
+    do {
         escape++;
         k=checkResult();
-        if(escape==5){
+        if(escape==5) {
             //nonho trovato la rete per 5 volte?? forse problema cpu?
             QMessageBox err;
             err.setText("ERROR");
@@ -935,13 +913,16 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
             ui->GenerateParameters_PushButton->setEnabled(false);
             ui->GenerateParameters_checkBox->setEnabled(false);
             on_disconnect_novasom_pushButton_clicked();
+            qCritical() << "Failed to find WebResults.txt for 5 times!";
             return;
         }
-    }while(k==-2);
+    }
+    while(k==-2);
 
     QFile fl(lan + "report.txt");
     if(fl.exists()) {
         fl.remove();
+        qDebug() << "report.txt removed";
     }
 
 #ifdef PG_USE_TFTP_ON_TARGET
@@ -960,6 +941,7 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
     tmp.append("unix2dos report.txt ; tftp -l /tmp/report.txt -r report.txt -p ");
     tmp.append(ip);
     tmp.append("\n\n ");
+    qDebug() << "Requested report.txt upload";
 #else
     QByteArray tmp;
     tmp.append("unix2dos report.txt ; ftpput --username novasomindustries --password novasomindustries ");
@@ -967,21 +949,18 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
     tmp.append(" report.txt \n\n ");
 #endif
 
-    if(k==0){
+    if(k==0) {
         //test pass
         update_status_bar("TEST PASS!!");
         ui->GenerateParameters_PushButton->setEnabled(false);
         ui->GenerateParameters_checkBox->setEnabled(false);
         ui->Write_EEprom_pushButton->setEnabled(true);
-
-        //QFile fl(lan + "report.txt");
-
-        if(ui->GenerateParameters_checkBox->isChecked()){
+        if(ui->GenerateParameters_checkBox->isChecked()) {
             //genera parametri!
-
             serialport->write(tmp);
             generateParameters();
-        }else{
+        }
+        else {
             //non generare parametri!
             ui->PN_lineEdit->clear();
             ui->Lotto_lineEdit->clear();
@@ -991,7 +970,6 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
 
             ui->NextPort_pushButton->setEnabled(false);
             ui->Write_EEprom_pushButton->setEnabled(true);
-
         }
 
         /*
@@ -1025,8 +1003,8 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
                     break;
                 }
                 */
-
-    }else if(k==1){
+    }
+    else if(k==1) {
         //test fail
         update_status_bar("TEST FAIL!!");
         serialport->write(tmp);
@@ -1040,7 +1018,7 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
         int week,year;
         char buffer[5];
         QDate date;
-        if(date.currentDate().isValid()){
+        if(date.currentDate().isValid()) {
             week=date.currentDate().weekNumber();
             year=date.currentDate().year();
             /*if(getUser()=="BRC01"){
@@ -1075,11 +1053,10 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
             //lotto.append("-");
 
             ui->Lotto_lineEdit->setText(lotto);
-           }else{
-            //non ho data!! sono fottuto!!
-             }
-
-
+        }
+        else {
+            qCritical() << "Invalid current date: can't generate lot number!";
+        }
         ui->MAC_lineEdit->clear();
         ui->seriale_lineEdit->clear();
         ui->GenerateParameters_PushButton->setEnabled(false);
@@ -1091,118 +1068,114 @@ void MainWindow::on_GenerateParameters_PushButton_clicked()
         QByteArray line;
         int error;
         QFile fileerror(Fail+ui->PN_lineEdit->text()+"_"+ui->Lotto_lineEdit->text()+"error.txt");
-        if(fileerror.exists()){
+        if(fileerror.exists()) {
             fileerror.open(QIODevice::ReadWrite | QIODevice::Text);
             line=fileerror.readAll();
             error=atoi(line);
             line.clear();
 
-        }else{
-
+        }else {
             //crea file!!
             error=0;
             line.clear();
             //clearstdstr(stdstr);
         }
-            fileerror.close();
-         error++;
-         titolo.clear();
-         my_itoa(error, stdstr);
+        fileerror.close();
+        error++;
+        titolo.clear();
+        my_itoa(error, stdstr);
         //itoa(error,stdstr,10);
         titolo.append(stdstr);
         clearstdstr(stdstr);
-
-
-        if(!fileerror.isOpen()){
+        if(!fileerror.isOpen()) {
             fileerror.open(QIODevice::ReadWrite | QIODevice::Text);
         }
         my_itoa(error, stdstr);
         //itoa(error,stdstr,10);
         fileerror.write(stdstr);
         clearstdstr(stdstr);
-         fileerror.close();
-
-    }else{
-        //errore!!
+        fileerror.close();
+    }
+    else {
+        qCritical() << "Unexpeted checkResult() return value!";
     }
 }
 
 int MainWindow:: checkResult(){
     QByteArray linebytearray;
     QFile file1(lan+"WebServerResult.txt");
-    if(file1.exists()){
-        if (!file1.open(QIODevice::ReadOnly|QIODevice::Text)){
+    if(file1.exists()) {
+        if (!file1.open(QIODevice::ReadOnly|QIODevice::Text)) {
             QMessageBox::information(this, tr("Unable to open file"),file1.errorString());
             qDebug() << "Failed to open WebServerResult.txt";
             return -1;
-           }
-       linebytearray=file1.readAll();
-       QMessageBox err;
-       err.setText("TEST FAIL");
-       err.setIcon(QMessageBox::Critical);
-       err.setWindowTitle("Test Fail");
-       err.setInformativeText("Test Fail");
-       if(linebytearray.toStdString()=="OK"){
-           qDebug() << "WebServerResult.txt contains OK";
-           QMessageBox msgBox;
+        }
+        linebytearray=file1.readAll();
+        QMessageBox err;
+        err.setText("TEST FAIL");
+        err.setIcon(QMessageBox::Critical);
+        err.setWindowTitle("Test Fail");
+        err.setInformativeText("Test Fail");
+        qDebug() << "WebServerResult.txt contains " << linebytearray;
+        if(linebytearray.toStdString()=="OK") {
+            QMessageBox msgBox;
+            msgBox.setText("Check video...");
+            msgBox.setInformativeText("Can you see video?");
+            msgBox.setWindowTitle("Check result...");
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            int video = msgBox.exec();
+            switch(video) {
+            case QMessageBox::Yes:
+                ui->testpass_checkBox->setChecked(true);
+                ui->testFail_checkBox->setChecked(false);
+                qDebug() << "Test video OK";
+                return 0;
+                break;
 
-               msgBox.setText("Check video...");
-               msgBox.setInformativeText("Can you see video?");
-               msgBox.setWindowTitle("Check result...");
-               msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-               int video = msgBox.exec();
-               switch(video){
-               case QMessageBox::Yes:
-                   ui->testpass_checkBox->setChecked(true);
-                   ui->testFail_checkBox->setChecked(false);
-                   qDebug() << "Test video OK";
-                   return 0;
-                   break;
+            case QMessageBox::No:
+                ui->testpass_checkBox->setChecked(false);
+                ui->testFail_checkBox->setChecked(true);
+                err.exec();
+                qDebug() << "Test video failed";
+                return 1;
+                break;
 
-               case QMessageBox::No:
-                   ui->testpass_checkBox->setChecked(false);
-                   ui->testFail_checkBox->setChecked(true);
-                   err.exec();
-                   qDebug() << "Test video failed";
-                   return 1;
-                   break;
-               default:
-                   break;
-               }
-           return 0;
-       }else if (linebytearray.toStdString()=="KO") {
-           qDebug() << "WebServerResult.txt contains KO";
-           QMessageBox msgBox1;
-               msgBox1.setText("Test Fail.");
-               msgBox1.setWindowTitle("Check result...");
-               msgBox1.exec();
-               err.exec();
-           ui->testpass_checkBox->setChecked(false);
-           ui->testFail_checkBox->setChecked(true);
-           return 1;
-       }else{
-           qDebug() << "WebServerResult.txt contains " << linebytearray;
-           QMessageBox msgBox2;
-               msgBox2.setText("Problema sconosciuto...\nFile risultato non corretto.Ripetere il test...");
-               msgBox2.setWindowTitle("???");
-               msgBox2.exec();
-           ui->testpass_checkBox->setChecked(false);
-           ui->testFail_checkBox->setChecked(false);
+            default:
+                break;
+            }
+            return 0;
+        }
+        else if (linebytearray.toStdString()=="KO") {
+            QMessageBox msgBox1;
+            msgBox1.setText("Test Fail.");
+            msgBox1.setWindowTitle("Check result...");
+            msgBox1.exec();
+            err.exec();
+            ui->testpass_checkBox->setChecked(false);
+            ui->testFail_checkBox->setChecked(true);
+            return 1;
+        }
+        else {
+            QMessageBox msgBox2;
+            msgBox2.setText("Problema sconosciuto...\nFile risultato non corretto.Ripetere il test...");
+            msgBox2.setWindowTitle("???");
+            msgBox2.exec();
+            ui->testpass_checkBox->setChecked(false);
+            ui->testFail_checkBox->setChecked(false);
             return -1;
-       }
-
-    }else{
+        }
+    }
+    else {
         QMessageBox msgBox3;
-            msgBox3.setText("WebServer problem...No network?? ");
-            msgBox3.setWindowTitle("Check result...");
-            msgBox3.exec();
+        msgBox3.setText("WebServer problem...No network?? ");
+        msgBox3.setWindowTitle("Check result...");
+        msgBox3.exec();
         qDebug() << "WebServerResult.txt not found";
         return -2;
     }
 }
 
-void MainWindow::generateParameters(){
-
+void MainWindow::generateParameters() {
     QString filename,pn,lotto,oc;
     filename=(ConfigDir+"/PN.ini");
     pn=ui->model_comboBox->currentText();
@@ -1540,52 +1513,35 @@ void MainWindow::on_Write_EEprom_pushButton_clicked()
         ui->NextPort_pushButton->setEnabled(true);
         ui->Write_EEprom_pushButton->setEnabled(false);
         ui->Print_Label_pushButton->setEnabled(false);
-
     }
-
-
 }
 
 int MainWindow::generateReport(QString filename){
-
-
     QFile report(directory+filename+".txt");
-    //qDebug()<< filename;
-
-    if(!report.open(QIODevice::ReadWrite|QIODevice::Text)){
-       //qDebug() << "Non sono riuscito a creare il file1!";
-       return -1;
-        }
-
-
+    qDebug() << "Generate report " << filename;
+    if(!report.open(QIODevice::ReadWrite|QIODevice::Text)) {
+        qCritical() << "Failed to create report file!";
+        return -1;
+    }
     QFile original(lan + "report.txt");
-
-
-    if(!original.open(QIODevice::ReadOnly|QIODevice::Text)){
-       //qDebug() << "Non sono riuscito ad aprire il file2!";
-       return -1;
-        }
+    if(!original.open(QIODevice::ReadOnly|QIODevice::Text)) {
+        qCritical() << "Failed to open '" << original.fileName() << "'";
+        return -1;
+    }
+    qCritical() << original.fileName() << " found";
     QByteArray rep;
 
     rep=original.readAll();
-    //qDebug() << rep;
-
     report.write("#");
     report.write(filename.toUtf8());
     report.write("\n");
     report.write("#");
     report.write(user.toUtf8());
     report.write("\n");
-
-
-
-
-
-
-    if(ui->testpass_checkBox->isChecked()){
-
+    if(ui->testpass_checkBox->isChecked()) {
         report.write("#TEST PASS!\n");
-    }else{
+    }
+    else {
         report.write("#TEST FAIL!");
     }
 
@@ -1600,7 +1556,6 @@ int MainWindow::generateReport(QString filename){
     report.write("\nMAC ADDRESS: ");
     report.write(ui->MAC_lineEdit->text().toUtf8());
     report.write("\n");
-
     report.write(rep);
     report.close();
     createPDF(filename);
@@ -1662,7 +1617,7 @@ void MainWindow::on_Print_Label_pushButton_clicked()
     generateLabel(titolo);
     sleep(1);
     printLabel(titolo);
-
+    qDebug() << "Label printed";
     ui->Print_Label_pushButton->setEnabled(false);
 }
 
